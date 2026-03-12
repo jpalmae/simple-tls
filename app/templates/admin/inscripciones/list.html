@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 mt-8 max-w-7xl">
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <h1 class="text-3xl font-bold text-gray-800">Gestión de Inscripciones</h1>
+        <div class="flex gap-3">
+            <a href="{{ url_for('admin_inscripciones.calendario') }}"
+                class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded shadow-sm transition text-sm">
+                <i class="far fa-calendar-alt mr-1"></i> Calendario
+            </a>
+            <a href="{{ url_for('admin_inscripciones.asignar') }}"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-sm transition text-sm">
+                <i class="fas fa-user-plus mr-1"></i> Asignar Curso
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <form method="GET"
+        class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6 flex flex-wrap gap-4 items-end">
+        <div class="flex-1 min-w-[180px]">
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Curso</label>
+            <select name="curso_id"
+                class="w-full border border-gray-300 rounded py-2 px-3 text-sm bg-white focus:ring-blue-500 focus:outline-none">
+                <option value="">Todos</option>
+                {% for c in cursos %}
+                <option value="{{ c.id }}" {% if filtro_curso==c.id %}selected{% endif %}>{{ c.titulo }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex-1 min-w-[180px]">
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Departamento</label>
+            <select name="departamento_id"
+                class="w-full border border-gray-300 rounded py-2 px-3 text-sm bg-white focus:ring-blue-500 focus:outline-none">
+                <option value="">Todos</option>
+                {% for d in departamentos %}
+                <option value="{{ d.id }}" {% if filtro_depto==d.id %}selected{% endif %}>{{ d.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex-1 min-w-[160px]">
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Estado</label>
+            <select name="estado"
+                class="w-full border border-gray-300 rounded py-2 px-3 text-sm bg-white focus:ring-blue-500 focus:outline-none">
+                <option value="">Todos</option>
+                <option value="pendiente" {% if filtro_estado=='pendiente' %}selected{% endif %}>Pendiente</option>
+                <option value="en_progreso" {% if filtro_estado=='en_progreso' %}selected{% endif %}>En Progreso
+                </option>
+                <option value="aprobado" {% if filtro_estado=='aprobado' %}selected{% endif %}>Aprobado</option>
+                <option value="reprobado" {% if filtro_estado=='reprobado' %}selected{% endif %}>Reprobado</option>
+                <option value="vencido" {% if filtro_estado=='vencido' %}selected{% endif %}>Vencido</option>
+            </select>
+        </div>
+        <button type="submit"
+            class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-5 rounded text-sm transition">
+            <i class="fas fa-filter mr-1"></i> Filtrar
+        </button>
+    </form>
+
+    <!-- Tabla -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden border border-gray-100">
+        <table class="min-w-full leading-normal">
+            <thead>
+                <tr class="bg-gray-50">
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Empleado</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Curso</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Estado</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Fecha Límite</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ins in inscripciones %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-5 py-3 border-b border-gray-200 text-sm">
+                        <div class="font-bold text-gray-900">{{ ins.usuario.nombre }} {{ ins.usuario.apellido }}</div>
+                        <div class="text-xs text-gray-500">{{ ins.usuario.email }}</div>
+                    </td>
+                    <td class="px-5 py-3 border-b border-gray-200 text-sm text-gray-800 font-medium">{{ ins.curso.titulo
+                        }}</td>
+                    <td class="px-5 py-3 border-b border-gray-200 text-sm">
+                        {% if ins.estado == 'aprobado' %}
+                        <span
+                            class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">Aprobado</span>
+                        {% elif ins.estado == 'reprobado' %}
+                        <span
+                            class="bg-red-100 text-red-700 text-xs font-bold px-2.5 py-1 rounded-full">Reprobado</span>
+                        {% elif ins.estado == 'en_progreso' %}
+                        <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">En
+                            Progreso</span>
+                        {% elif ins.estado == 'vencido' %}
+                        <span
+                            class="bg-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1 rounded-full">Vencido</span>
+                        {% else %}
+                        <span
+                            class="bg-yellow-100 text-yellow-700 text-xs font-bold px-2.5 py-1 rounded-full">Pendiente</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-3 border-b border-gray-200 text-sm text-gray-600">
+                        {% if ins.fecha_limite %}
+                        {{ ins.fecha_limite.strftime('%d/%m/%Y') }}
+                        {% else %}
+                        <span class="text-gray-400">Sin límite</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-3 border-b border-gray-200 text-sm text-right">
+                        <form action="{{ url_for('admin_inscripciones.eliminar', inscripcion_id=ins.id) }}"
+                            method="POST" class="inline"
+                            onsubmit="return confirm('¿Estás seguro de desinscribir a este usuario?');">
+                            <button type="submit" class="text-red-500 hover:text-red-700" title="Desinscribir"><i
+                                    class="fas fa-user-minus"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-5 py-10 text-center text-gray-500 border-b">
+                        <i class="fas fa-users-slash fa-2x text-gray-300 mb-3 block"></i>
+                        No se encontraron inscripciones con los filtros seleccionados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

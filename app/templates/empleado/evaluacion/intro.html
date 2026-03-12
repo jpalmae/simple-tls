@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 mt-12 max-w-3xl">
+
+    <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+
+        <!-- Header -->
+        <div class="bg-indigo-600 px-8 py-10 text-white text-center">
+            <i class="fas fa-clipboard-list fa-4x mb-4 text-indigo-300"></i>
+            <h1 class="text-3xl font-bold mb-2">{{ evaluacion.titulo }}</h1>
+            <p class="text-indigo-100">{{ curso.titulo }}</p>
+        </div>
+
+        <div class="p-8">
+            <!-- Instrucciones -->
+            {% if evaluacion.instrucciones %}
+            <div class="bg-indigo-50 border-l-4 border-indigo-500 p-5 roundedmb-8 mb-8">
+                <h3 class="font-bold text-indigo-900 mb-2">Instrucciones:</h3>
+                <p class="text-indigo-800 text-sm whitespace-pre-line">{{ evaluacion.instrucciones }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Reglas -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 text-center">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <i class="fas fa-bullseye text-blue-500 fa-2x mb-2"></i>
+                    <div class="text-xs text-gray-500 uppercase tracking-wide font-bold mb-1">Puntaje Aprobación</div>
+                    <div class="text-xl font-bold text-gray-800">{{ evaluacion.nota_minima_aprobacion }} <span
+                            class="text-sm font-normal">pts</span></div>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <i class="far fa-clock text-blue-500 fa-2x mb-2"></i>
+                    <div class="text-xs text-gray-500 uppercase tracking-wide font-bold mb-1">Tiempo Límite</div>
+                    <div class="text-xl font-bold text-gray-800">
+                        {% if evaluacion.tiempo_limite_min %}{{ evaluacion.tiempo_limite_min }} <span
+                            class="text-sm font-normal">min</span>
+                        {% else %}Ilimitado{% endif %}
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <i class="fas fa-redo text-blue-500 fa-2x mb-2"></i>
+                    <div class="text-xs text-gray-500 uppercase tracking-wide font-bold mb-1">Intentos</div>
+                    <div class="text-xl font-bold text-gray-800">
+                        {% if evaluacion.intentos_maximos %}
+                        <span
+                            class="{% if intentos_realizados >= evaluacion.intentos_maximos %}text-red-600{% endif %}">{{
+                            intentos_realizados }}</span> / {{ evaluacion.intentos_maximos }}
+                        {% else %}
+                        Ilimitados
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado Previos -->
+            {% if intentos_realizados > 0 %}
+            <div class="mb-8 text-center bg-gray-50 py-4 rounded-lg border border-gray-200">
+                <p class="text-sm text-gray-600 mb-1">Mejor resultado anterior:</p>
+                <p class="text-2xl font-bold {% if aprobado %}text-green-600{% else %}text-red-500{% endif %}">
+                    {{ mejor_puntaje }} pts {% if aprobado %}(Aprobado){% else %}(Reprobado){% endif %}
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Botón Acción -->
+            <div class="text-center">
+                {% if puede_rendir %}
+                <form action="{{ url_for('empleado_eval.iniciar', curso_id=curso.id, eval_id=evaluacion.id) }}"
+                    method="POST">
+                    <button type="submit"
+                        class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-12 rounded-full shadow-lg text-lg transition-transform transform hover:-translate-y-1">
+                        Comenzar Evaluación <i class="fas fa-arrow-right ml-2 text-sm"></i>
+                    </button>
+                </form>
+                <p class="text-xs text-gray-400 mt-4"><i class="fas fa-info-circle"></i> Al presionar comenzar, se
+                    gastará 1 intento de forma inmediata.</p>
+                {% else %}
+                <div class="bg-red-50 text-red-700 p-4 rounded-lg border border-red-200 inline-block">
+                    <i class="fas fa-lock fa-2x mb-3 text-red-500 opacity-50 block text-center"></i>
+                    <strong>No puedes rendir esta evaluación.</strong><br>
+                    Has superado el límite de intentos permitidos.
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="text-center mt-8 pt-6 border-t border-gray-100">
+                <a href="{{ url_for('empleado_cursos.detalle', id=curso.id) }}"
+                    class="text-gray-500 hover:text-gray-800 font-medium inline-flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i> Volver al contenido del curso
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

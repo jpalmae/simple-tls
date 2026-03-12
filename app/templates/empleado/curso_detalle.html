@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Cabecera Hero del curso -->
+<div class="bg-gradient-to-r from-blue-900 to-indigo-800 text-white relative">
+    <div class="absolute inset-0 opacity-20 pointer-events-none">
+        {% if cover_url %}
+        <img src="{{ cover_url }}" class="w-full h-full object-cover grayscale" alt="Fondo">
+        {% endif %}
+    </div>
+    <div class="container mx-auto px-4 py-12 relative z-10">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-8">
+            {% if cover_url %}
+            <div class="w-full md:w-1/3 flex-shrink-0">
+                <img src="{{ cover_url }}" alt="Portada"
+                    class="rounded-lg shadow-2xl border-4 border-white/10 w-full h-48 object-cover">
+            </div>
+            {% endif %}
+            <div class="w-full {% if cover_url %}md:w-2/3{% endif %}">
+                <span
+                    class="bg-blue-800 text-blue-100 text-xs font-bold px-2.5 py-1 rounded inline-flex items-center mb-4 uppercase tracking-wider shadow-sm">
+                    <i class="fas fa-graduation-cap mr-1.5"></i> Curso
+                </span>
+                <h1 class="text-3xl md:text-4xl font-extrabold mb-3 leading-tight">{{ curso.titulo }}</h1>
+                <p class="text-blue-100/80 mb-6 text-lg line-clamp-3">{{ curso.descripcion }}</p>
+
+                {% if curso.secuencial %}
+                <div
+                    class="inline-flex items-center text-sm bg-black/20 rounded-full px-4 py-1.5 backdrop-blur-sm border border-white/10">
+                    <i class="fas fa-lock text-yellow-400 mr-2"></i> Este curso requiere aprendizaje secuencial.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+
+    <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
+        <h2 class="text-2xl font-bold text-gray-800">Contenido del Programa</h2>
+        {% if current_user.rol == 'admin' and not inscripcion %}
+        <!-- Botón para debugear como admin -->
+        <form action="{{ url_for('empleado_cursos.debug_inscribir', id=curso.id) }}" method="POST">
+            <button type="submit"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded shadow-sm text-sm transition">
+                <i class="fas fa-bug mr-1"></i> Autoinscribirse (Debug)
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Syllabus: Módulos y Lecciones -->
+    <div class="space-y-6">
+
+        <!-- Lecciones Sueltas -->
+        {% set sueltas = [] %}
+        {% for estado in lecciones_estado %}
+        {% if not estado.leccion.modulo_id %}
+        {% set _ = sueltas.append(estado) %}
+        {% endif %}
+        {% endfor %}
+
+        {% if sueltas %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 border-b border-gray-200 px-5 py-4">
+                <h3 class="font-bold text-gray-700">Material Inicial</h3>
+            </div>
+            <div class="divide-y divide-gray-100">
+                {% for estado in sueltas %}
+                {% include "empleado/components/_leccion_row.html" %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Módulos organizados -->
+        {% for modulo in curso.modulos.order_by('orden') %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 border-b border-gray-200 px-5 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-gray-800 text-lg">Módulo {{ loop.index }}: {{ modulo.titulo }}</h3>
+                <span class="text-sm text-gray-500 font-medium">{{ modulo.lecciones.count() }} lecciones</span>
+            </div>
+
+            <div class="divide-y divide-gray-100">
+                {% for leccion in modulo.lecciones.order_by('orden') %}
+                {% for estado in lecciones_estado %}
+                {% if estado.leccion.id == leccion.id %}
+                {% include "empleado/components/_leccion_row.html" %}
+                {% endif %}
+                {% endfor %}
+                {% else %}
+                <div class="p-4 text-center text-sm text-gray-500">Este módulo aún no tiene contenido.</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Evaluaciones Finales -->
+        {% if curso.evaluaciones.count() > 0 %}
+        <div class="mt-8">
+            <h3 class="font-bold text-gray-800 text-xl mb-4"><i class="fas fa-clipboard-check text-indigo-500 mr-2"></i>
+                Evaluaciones Finales</h3>
+            <div class="space-y-4">
+                {% for eval in curso.evaluaciones %}
+                <div
+                    class="bg-indigo-50 rounded-xl shadow-sm border border-indigo-100 overflow-hidden flex items-center p-5">
+                    <div
+                        class="w-12 h-12 bg-indigo-200 text-indigo-600 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-indigo-900 text-lg">{{ eval.titulo }}</h4>
+                        <p class="text-sm text-indigo-700">Puntaje mínimo de aprobación: {{ eval.nota_minima_aprobacion
+                            }} pts.</p>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('empleado_eval.intro', curso_id=curso.id, eval_id=eval.id) }}"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-full shadow transition whitespace-nowrap">
+                            Entrar al Examen <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-8">
+    <div class="bg-white shadow-md rounded border border-gray-200 overflow-hidden">
+        <div class="bg-blue-900 text-white px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-xl font-semibold">{% if curso %}Editar Curso{% else %}Configuración Básica del Curso{% endif
+                %}</h2>
+            {% if curso %}
+            <a href="{{ url_for('admin_cursos.builder', id=curso.id) }}"
+                class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white py-1 px-3 rounded shadow">
+                Ir a Malla Curricular <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+            {% endif %}
+        </div>
+
+        <form
+            action="{% if curso %}{{ url_for('admin_cursos.editar', id=curso.id) }}{% else %}{{ url_for('admin_cursos.crear') }}{% endif %}"
+            method="POST" enctype="multipart/form-data" class="p-6">
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="titulo">
+                    Título del Curso <span class="text-red-500">*</span>
+                </label>
+                <input
+                    class="shadow-sm appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    id="titulo" name="titulo" type="text" required value="{{ curso.titulo if curso else '' }}">
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="descripcion">
+                    Descripción
+                </label>
+                <textarea
+                    class="shadow-sm appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 h-32"
+                    id="descripcion" name="descripcion">{{ curso.descripcion if curso else '' }}</textarea>
+                <p class="text-xs text-gray-500 mt-1">Breve resumen de lo que los empleados aprenderán.</p>
+            </div>
+
+            <div class="mb-6 bg-gray-50 p-4 rounded border border-gray-200">
+                <label class="block text-gray-700 text-sm font-bold mb-3" for="portada">
+                    Imagen de Portada (Opcional)
+                </label>
+
+                {% if cover_url %}
+                <div class="mb-3">
+                    <img src="{{ cover_url }}" alt="Portada actual"
+                        class="h-32 object-cover rounded border border-gray-300 shadow-sm">
+                    <p class="text-xs text-gray-500 mt-1">Sube una nueva imagen si deseas reemplazar la actual.</p>
+                </div>
+                {% endif %}
+
+                <input
+                    class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none focus:border-blue-500 p-2"
+                    id="portada" name="portada" type="file" accept="image/*">
+                <p class="text-xs text-gray-500 mt-1">Recomendado: JPG o PNG, proporción 16:9.</p>
+            </div>
+
+            <div class="flex flex-wrap -mx-3 mb-6">
+                <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                    <label
+                        class="flex items-center p-4 border rounded cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input type="checkbox" name="secuencial" id="secuencial"
+                            class="form-checkbox h-5 w-5 text-blue-600 rounded" {% if not curso or curso.secuencial
+                            %}checked{% endif %}>
+                        <div class="ml-3">
+                            <span class="block text-gray-700 text-sm font-bold">Modo Secuencial</span>
+                            <span class="block text-gray-500 text-xs mt-1">Obliga a ver lecciones en orden.</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="w-full md:w-1/2 px-3">
+                    <label
+                        class="flex items-center p-4 border rounded cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input type="checkbox" name="activo" id="activo"
+                            class="form-checkbox h-5 w-5 text-blue-600 rounded" {% if curso and curso.activo %}checked{%
+                            endif %}>
+                        <div class="ml-3">
+                            <span class="block text-gray-700 text-sm font-bold">Curso Activo</span>
+                            <span class="block text-gray-500 text-xs mt-1">Visible para inscripción si está
+                                marcado.</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end border-t border-gray-200 pt-5 mt-2">
+                <a href="{{ url_for('admin_cursos.index') }}"
+                    class="text-gray-600 hover:text-gray-800 font-medium py-2 px-4 mr-2 transition-colors">
+                    Cancelar
+                </a>
+                <button
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow transition-colors"
+                    type="submit">
+                    {% if curso %}Guardar Cambios{% else %}Siguiente: Agregar Contenido{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

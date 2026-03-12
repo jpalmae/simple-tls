@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-6">
+    <!-- Breadcrumbs -->
+    <nav class="text-xs text-gray-500 mb-4" aria-label="Breadcrumb">
+        <ol class="list-none p-0 inline-flex">
+            <li class="flex items-center">
+                <a href="{{ url_for('admin_cursos.index') }}" class="hover:text-blue-600 transition">Cursos</a>
+                <i class="fas fa-chevron-right text-[10px] mx-2 text-gray-400"></i>
+            </li>
+            <li class="flex items-center">
+                <a href="{{ url_for('admin_cursos.builder', id=curso.id) }}"
+                    class="hover:text-blue-600 transition truncate w-32 md:w-auto" title="{{ curso.titulo }}">{{
+                    curso.titulo }}</a>
+                <i class="fas fa-chevron-right text-[10px] mx-2 text-gray-400"></i>
+            </li>
+            <li class="flex items-center font-bold text-gray-700">
+                {% if leccion %}Editar{% else %}Nueva{% endif %} Lección ({% if tipo=='html' %}Texto{% elif
+                tipo=='video' %}Video{% elif tipo=='pdf' %}PDF{% else %}Audio{% endif %})
+            </li>
+        </ol>
+    </nav>
+
+    <div class="bg-white shadow-md rounded border border-gray-200 overflow-hidden">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-gray-800 flex items-center">
+                {% if tipo=='html' %}<i class="fas fa-file-alt text-blue-500 mr-2"></i> Contenido de Texto / HTML
+                {% elif tipo=='video' %}<i class="fas fa-video text-red-500 mr-2"></i> Contenido de Video
+                {% elif tipo=='pdf' %}<i class="fas fa-file-pdf text-red-700 mr-2"></i> Documento PDF
+                {% elif tipo=='audio' %}<i class="fas fa-headphones text-indigo-500 mr-2"></i> Contenido de Audio
+                {% endif %}
+            </h2>
+        </div>
+
+        <form action="{{ request.path }}" method="POST" enctype="multipart/form-data" class="p-6">
+
+            <!-- Type hidden mapping -->
+            <input type="hidden" name="tipo" value="{{ tipo }}">
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="titulo">
+                    Título de la Lección <span class="text-red-500">*</span>
+                </label>
+                <input
+                    class="shadow-sm appearance-none border rounded w-full py-2.5 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    id="titulo" name="titulo" type="text" required value="{{ leccion.titulo if leccion else '' }}"
+                    placeholder="Ej. Conceptos Básicos">
+            </div>
+
+            <div class="flex flex-wrap -mx-3 mb-6">
+                <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="modulo_id">
+                        Pertenece al Módulo
+                    </label>
+                    <div class="relative">
+                        <select
+                            class="block appearance-none w-full bg-gray-50 border border-gray-200 text-gray-700 py-2.5 px-4 pr-8 rounded leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            id="modulo_id" name="modulo_id">
+                            <option value="">-- Sin módulo (lección suelta) --</option>
+                            {% for mod in modulos %}
+                            <option value="{{ mod.id }}" {% if leccion and leccion.modulo_id==mod.id %}selected{% endif
+                                %} {% if modulo_id and modulo_id==mod.id %}selected{% endif %}>
+                                {{ mod.titulo }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full md:w-1/2 px-3">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="duracion_min">
+                        Duración Estimada (minutos)
+                    </label>
+                    <input
+                        class="shadow-sm appearance-none border rounded w-full py-2.5 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+                        id="duracion_min" name="duracion_min" type="number" min="1"
+                        value="{{ leccion.duracion_min if leccion else '' }}" placeholder="Ej. 15">
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-6 mb-2">
+
+                {% if tipo == 'html' %}
+
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="contenido_html">
+                    Contenido de la Lección
+                </label>
+                <p class="text-xs text-gray-500 mb-2">Puedes utilizar etiquetas HTML básicas (p, b, i, h1, a, ul, li).
+                    Contenido riesgoso será sanitizado.</p>
+                <textarea
+                    class="shadow-sm appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm h-64"
+                    id="contenido_html" name="contenido_html" required
+                    placeholder="Escribe tu contenido HTML aquí...">{{ leccion.contenido if leccion else '' }}</textarea>
+
+                {% else %}
+
+                <label class="block text-gray-700 text-sm font-bold mb-3" for="archivo">
+                    Archivo Fuente
+                    {% if tipo == 'pdf' %}(.pdf){% elif tipo == 'video' %}(.mp4){% elif tipo == 'audio' %}(.mp3){% endif
+                    %}
+                    {% if not leccion %}<span class="text-red-500">*</span>{% endif %}
+                </label>
+
+                {% if archivo_url %}
+                <div class="mb-4 bg-gray-50 p-3 rounded border border-gray-200 flex items-center justify-between">
+                    <div class="flex items-center text-sm truncate">
+                        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                        <span class="text-gray-700 truncate mr-2" title="{{ leccion.contenido }}">Archivo actual:
+                            <strong>{{ leccion.contenido.split('/')[-1] }}</strong></span>
+                    </div>
+                    <a href="{{ archivo_url }}" target="_blank"
+                        class="text-blue-500 hover:underline text-xs whitespace-nowrap"><i
+                            class="fas fa-external-link-alt"></i> Ver actual</a>
+                </div>
+                <p class="text-xs text-gray-500 mb-2 font-medium">Sube un nuevo archivo solo si deseas reemplazar el
+                    existente:</p>
+                {% endif %}
+
+                <div class="flex items-center justify-center w-full">
+                    <label for="archivo"
+                        class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                            <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Haz clic para
+                                    buscar</span> o arrastra y suelta</p>
+                            <p class="text-xs text-gray-500 uppercase font-medium">Solo {% if tipo == 'pdf' %}PDF{% elif
+                                tipo == 'video' %}MP4{% elif tipo == 'audio' %}MP3, WAV{% endif %}</p>
+                        </div>
+                        <input id="archivo" name="archivo" type="file" class="hidden"
+                            accept="{% if tipo == 'pdf' %}.pdf,application/pdf{% elif tipo == 'video' %}video/mp4{% elif tipo == 'audio' %}audio/mpeg,audio/mp3,audio/wav{% endif %}"
+                            {% if not leccion %}required{% endif %} onchange="updateFileName(this)">
+                    </label>
+                </div>
+                <div id="file-name-display" class="mt-2 text-sm font-medium text-blue-600 hidden">
+                    <i class="fas fa-file-alt mr-1"></i> <span id="file-name-text"></span>
+                </div>
+
+                <script>
+                    function updateFileName(input) {
+                        const display = document.getElementById('file-name-display');
+                        const text = document.getElementById('file-name-text');
+                        if (input.files && input.files.length > 0) {
+                            text.textContent = input.files[0].name;
+                            display.classList.remove('hidden');
+                        } else {
+                            display.classList.add('hidden');
+                        }
+                    }
+                </script>
+
+                {% endif %}
+
+            </div>
+
+            <div class="flex items-center justify-end mt-8">
+                <a href="{{ url_for('admin_cursos.builder', id=curso.id) }}"
+                    class="text-gray-600 hover:text-gray-800 font-medium py-2 px-4 mr-2 transition-colors">
+                    Cancelar
+                </a>
+                <button
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow transition-colors flex items-center"
+                    type="submit">
+                    <i class="fas fa-save mr-2"></i> {% if leccion %}Guardar Cambios{% else %}Agregar Lección{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

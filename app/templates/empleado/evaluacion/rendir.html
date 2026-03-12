@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 mt-8 max-w-4xl pb-16">
+
+    <!-- Topbar info -->
+    <div
+        class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 flex justify-between items-center sticky top-4 z-50">
+        <div>
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Evaluación en
+                progreso</span>
+            <h2 class="text-xl font-bold text-gray-800 truncate">{{ evaluacion.titulo }}</h2>
+        </div>
+
+        {% if evaluacion.tiempo_limite_min %}
+        <div
+            class="bg-red-50 text-red-700 px-4 py-2 rounded-lg font-mono font-bold border border-red-100 flex items-center shadow-inner">
+            <i class="far fa-clock mr-2 animate-pulse"></i>
+            <span id="timer">--:--</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Cuestionario Form -->
+    <form
+        action="{{ url_for('empleado_eval.submit', curso_id=curso.id, eval_id=evaluacion.id, intento_id=intento.id) }}"
+        method="POST" id="evaluacion-form">
+
+        <div class="space-y-8">
+            {% for pregunta in preguntas %}
+            <div class="bg-white rounded-xl shadow border border-gray-100 p-6 sm:p-8">
+
+                <div class="flex items-start mb-6 border-b border-gray-100 pb-4">
+                    <span
+                        class="bg-blue-100 text-blue-800 font-bold px-3 py-1.5 rounded mr-4 text-sm whitespace-nowrap">Pregunta
+                        {{ loop.index }}</span>
+                    <h3 class="text-lg font-bold text-gray-800 leading-snug">{{ pregunta.enunciado }}</h3>
+                </div>
+
+                <div class="space-y-3 pl-2 sm:pl-16">
+                    {% for opcion in pregunta.opciones %}
+                    <label
+                        class="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 cursor-pointer transition relative has-checked:bg-blue-50 has-checked:border-blue-500">
+                        <input type="radio" name="pregunta_{{ pregunta.id }}" value="{{ opcion.id }}" required
+                            class="form-radio h-5 w-5 text-blue-600 border-gray-300 focus:ring-blue-500 mr-4">
+                        <span class="text-gray-700 text-base flex-1">{{ opcion.texto }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-12 bg-gray-50 p-6 rounded-xl border border-gray-200 text-center shadow-inner">
+            <h4 class="font-bold text-gray-700 mb-2">Has llegado al final de la evaluación</h4>
+            <p class="text-sm text-gray-500 mb-6">Revisa tus respuestas antes de enviar. Una vez presionado no podrás
+                deshacer esta acción.</p>
+
+            <button type="submit" id="btn-submit"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-12 rounded-full shadow-lg text-lg transition-transform transform hover:-translate-y-1 inline-flex items-center">
+                <i class="fas fa-paper-plane mr-2"></i> Enviar Evaluación
+            </button>
+        </div>
+
+    </form>
+</div>
+
+{% if evaluacion.tiempo_limite_min %}
+<script>
+    // Timer Lógico Básico en JS para el front
+    const limiteMinutos = parseInt("{{ evaluacion.tiempo_limite_min }}", 10);
+    // Idealmente obtendríamos la fecha exacta de 'intento.fecha_inicio' en JS y compararíamos 
+    // pero por simplicidad de MVP empezamos una cuenta visual simple. La validación fuerte idealmente se haría en backend.
+
+    let tiempoRestante = limiteMinutos * 60; // segundos
+    const display = document.querySelector('#timer');
+
+    function iniciarTimer() {
+        const intervalID = setInterval(function () {
+            let minutos = parseInt(tiempoRestante / 60, 10);
+            let segundos = parseInt(tiempoRestante % 60, 10);
+
+            minutos = minutos < 10 ? "0" + minutos : minutos;
+            segundos = segundos < 10 ? "0" + segundos : segundos;
+
+            display.textContent = minutos + ":" + segundos;
+
+            if (--tiempoRestante < 0) {
+                clearInterval(intervalID);
+                display.textContent = "00:00";
+                // Auto Submit al expirar
+                document.getElementById('btn-submit').innerText = "Enviando por tiempo...";
+                document.getElementById('evaluacion-form').submit();
+            }
+        }, 1000);
+    }
+
+    window.onload = function () {
+        iniciarTimer();
+    };
+</script>
+{% endif %}
+
+{% endblock %}

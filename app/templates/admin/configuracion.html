@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 mt-8 max-w-4xl">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center">
+            <i class="fas fa-cog text-gray-500 mr-3 fa-lg"></i>
+            <h2 class="text-xl font-bold text-gray-800">Configuración Global del Sistema</h2>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin_config.index') }}" class="p-6" enctype="multipart/form-data">
+
+            <h3 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Identidad de Marca (Branding)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="nombre_app">
+                        Nombre de la Aplicación
+                    </label>
+                    <input
+                        class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        id="nombre_app" name="nombre_app" type="text"
+                        value="{{ config.nombre_app or 'SixManager LMS' }}" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="dominio">
+                        Dominio Base URL
+                    </label>
+                    <input
+                        class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        id="dominio" name="dominio" type="text" value="{{ config.dominio or 'localhost' }}" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                        Logo de la Aplicación
+                    </label>
+                    {% if config.logo_url %}
+                    <div class="mb-3 p-3 bg-gray-50 rounded border border-gray-200 flex items-center gap-3">
+                        <img src="{{ minio_svc.get_file_url(config.logo_url) }}" alt="Logo actual"
+                            class="h-12 max-w-[120px] object-contain rounded">
+                        <span class="text-xs text-green-600 font-medium"><i class="fas fa-check-circle mr-1"></i>Logo
+                            cargado</span>
+                    </div>
+                    {% endif %}
+                    <input type="file" name="logo_file" accept="image/*"
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                    <p class="text-xs text-gray-500 mt-1">PNG, JPG o SVG. Recomendado: 200x50 px.</p>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                        Favicon
+                    </label>
+                    {% if config.favicon_url %}
+                    <div class="mb-3 p-3 bg-gray-50 rounded border border-gray-200 flex items-center gap-3">
+                        <img src="{{ minio_svc.get_file_url(config.favicon_url) }}" alt="Favicon actual"
+                            class="h-8 w-8 object-contain rounded">
+                        <span class="text-xs text-green-600 font-medium"><i class="fas fa-check-circle mr-1"></i>Favicon
+                            cargado</span>
+                    </div>
+                    {% endif %}
+                    <input type="file" name="favicon_file" accept="image/*,.ico"
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                    <p class="text-xs text-gray-500 mt-1">ICO, PNG o SVG. Recomendado: 32x32 px.</p>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Métricas de Cumplimiento</h3>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="umbral_global_porcentaje">
+                    Umbral Mínimo de Aprobación Global (%)
+                </label>
+                <div class="flex items-center">
+                    <input
+                        class="shadow-sm appearance-none border rounded w-24 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 mr-3"
+                        id="umbral_global_porcentaje" name="umbral_global_porcentaje" type="number" min="1" max="100"
+                        value="{{ config.umbral_global_porcentaje }}" required>
+                    <span class="text-sm text-gray-600">% (Aplica a todos los departamentos por defecto)</span>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <label class="flex items-center">
+                    <input type="checkbox" name="incluir_vencidos" id="incluir_vencidos"
+                        class="form-checkbox h-5 w-5 text-blue-600 rounded" {% if config.incluir_vencidos_en_denominador
+                        %}checked{% endif %}>
+                    <span class="ml-2 text-gray-700 text-sm font-medium">Incluir cursos vencidos como "Reprobados" en el
+                        cálculo de cumplimiento</span>
+                </label>
+            </div>
+
+            <h3 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Recordatorios (Días antes del
+                vencimiento)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="dias_recordatorio_1">Recordatorio
+                        1</label>
+                    <input
+                        class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        id="dias_recordatorio_1" name="dias_recordatorio_1" type="number" min="1"
+                        value="{{ config.dias_recordatorio_1 }}" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="dias_recordatorio_2">Recordatorio
+                        2</label>
+                    <input
+                        class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        id="dias_recordatorio_2" name="dias_recordatorio_2" type="number" min="1"
+                        value="{{ config.dias_recordatorio_2 }}" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="dias_recordatorio_3">Recordatorio
+                        3</label>
+                    <input
+                        class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        id="dias_recordatorio_3" name="dias_recordatorio_3" type="number" min="1"
+                        value="{{ config.dias_recordatorio_3 }}" required>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-gray-200 mt-6">
+                <button
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+                    type="submit">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

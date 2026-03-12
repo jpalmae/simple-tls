@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 mt-8 max-w-6xl">
+
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Mi Aprendizaje</h1>
+        <p class="text-gray-600 mt-2">Continúa donde lo dejaste y descubre nuevos conocimientos.</p>
+    </div>
+
+    <!-- Filtros Básicos (Para futuras fases) -->
+    <div class="flex pb-4 border-b border-gray-200 mb-6 gap-6">
+        <button class="text-blue-600 font-semibold border-b-2 border-blue-600 pb-2 px-2">Cursos Activos</button>
+        <button class="text-gray-500 hover:text-gray-700 font-medium pb-2 px-2 transition">Completados</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        {% for info in cursos_inscritos %}
+        <div
+            class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300 flex flex-col group">
+
+            <!-- Portada -->
+            <a href="{{ url_for('empleado_cursos.detalle', id=info.curso.id) }}"
+                class="block relative h-48 bg-gray-200 overflow-hidden">
+                {% if info.cover_url %}
+                <img src="{{ info.cover_url }}" alt="Portada de {{ info.curso.titulo }}"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                {% else %}
+                <div
+                    class="flex items-center justify-center w-full h-full bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-500">
+                    <i class="fas fa-laptop-code fa-3x opacity-50"></i>
+                </div>
+                {% endif %}
+
+                <!-- Badge Completado -->
+                {% if info.progreso_porcentaje == 100 %}
+                <div class="absolute top-3 right-3 bg-green-500 text-white rounded-full p-2 shadow-lg"
+                    title="¡Curso completado!">
+                    <i class="fas fa-check"></i>
+                </div>
+                {% endif %}
+            </a>
+
+            <!-- Contenido -->
+            <div class="p-5 flex-grow flex flex-col">
+                <a href="{{ url_for('empleado_cursos.detalle', id=info.curso.id) }}"
+                    class="hover:text-blue-600 transition-colors">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2 line-clamp-2 leading-tight">{{ info.curso.titulo }}
+                    </h3>
+                </a>
+
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2 flex-grow">{{ info.curso.descripcion or 'Sin
+                    descripción.' }}</p>
+
+                <!-- Barra de Progreso -->
+                <div class="mt-auto pt-4 border-t border-gray-100">
+                    <div class="flex justify-between text-xs font-semibold text-gray-500 mb-2">
+                        <span>Progreso General</span>
+                        <span
+                            class="{% if info.progreso_porcentaje == 100 %}text-green-600{% else %}text-blue-600{% endif %}">
+                            {{ info.progreso_porcentaje }}%
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-3 overflow-hidden">
+                        <div class="{% if info.progreso_porcentaje == 100 %}bg-green-500{% else %}bg-blue-600{% endif %} h-2 rounded-full transition-all duration-1000 ease-out"
+                            style="width: {{ info.progreso_porcentaje }}%"></div>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-4">
+                        <div class="text-xs text-gray-500">
+                            <i class="far fa-check-circle mr-1"></i> {{ info.lecciones_completadas }} de {{
+                            info.total_lecciones }} lecciones
+                        </div>
+                        <a href="{{ url_for('empleado_cursos.detalle', id=info.curso.id) }}"
+                            class="text-sm font-bold text-blue-600 hover:text-blue-800 transition">
+                            {% if info.progreso_porcentaje == 0 %}
+                            Comenzar <i class="fas fa-play ml-1 text-xs"></i>
+                            {% elif info.progreso_porcentaje == 100 %}
+                            Repasar <i class="fas fa-redo ml-1 text-xs"></i>
+                            {% else %}
+                            Continuar <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        {% else %}
+        <div class="col-span-full py-16 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300">
+            <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                <i class="fas fa-book-open fa-2x"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-700">No tienes cursos asignados</h3>
+            <p class="text-gray-500 mt-2 text-sm max-w-sm mx-auto">Cuando el administrador te asigne a programas de
+                capacitación, aparecerán aquí para que comiences tu aprendizaje.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

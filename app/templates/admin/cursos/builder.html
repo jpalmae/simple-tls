@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 mt-6 max-w-5xl">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6 pb-4 border-b">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Malla Curricular: {{ curso.titulo }}</h2>
+            <p class="text-sm text-gray-600 mt-1">{% if curso.secuencial %}Modo Secuencial activado{% else %}Modo de
+                navegación libre{% endif %}</p>
+        </div>
+        <div class="flex space-x-2">
+            <a href="{{ url_for('admin_cursos.index') }}"
+                class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded shadow text-sm">
+                <i class="fas fa-arrow-left mr-2"></i> Volver al Catálogo
+            </a>
+            <a href="{{ url_for('admin_cursos.editar', id=curso.id) }}"
+                class="text-blue-200 hover:text-white mr-4 transition text-sm">
+                <i class="fas fa-cog mr-1"></i> Configuraciones
+            </a>
+            <a href="{{ url_for('admin_evaluaciones.index', curso_id=curso.id) }}"
+                class="text-yellow-400 hover:text-yellow-300 transition text-sm font-bold flex items-center bg-blue-800 px-3 py-1 rounded-full border border-yellow-500/30">
+                <i class="fas fa-clipboard-check mr-2"></i> Evaluaciones
+            </a>
+        </div>
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-6">
+
+        <!-- Contenido Principal (Modulos y Lecciones) -->
+        <div class="w-full md:w-2/3">
+
+            {% if curso.modulos.count() == 0 and curso.lecciones.count() == 0 %}
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 relative rounded">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-blue-700">
+                            Tu curso aún no tiene contenido. Puedes agregar <strong>Lecciones sueltas</strong>
+                            directamente, o agruparlas organizadamente creando <strong>Módulos</strong> primero.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Lista de Módulos y sus Lecciones -->
+            <div class="space-y-4">
+                {% for modulo in curso.modulos.order_by('orden') %}
+                <div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-gray-100 px-4 py-3 border-b flex justify-between items-center">
+                        <div class="flex items-center">
+                            <i class="fas fa-folder text-gray-400 mr-2"></i>
+                            <h3 class="font-bold text-gray-800">Módulo {{ loop.index }}: {{ modulo.titulo }}</h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <!-- Dropdown de "Agregar Lección" al módulo -->
+                            <div class="relative group">
+                                <button
+                                    class="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-2 py-1 rounded border border-indigo-200 font-medium transition-colors">
+                                    <i class="fas fa-plus mr-1"></i> Contenido
+                                </button>
+                                <div
+                                    class="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                                    <a href="{{ url_for('admin_lecciones.crear', curso_id=curso.id, modulo_id=modulo.id, tipo='html') }}"
+                                        class="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-100"><i
+                                            class="fas fa-file-alt w-4 text-center mr-2 text-gray-500"></i> Texto
+                                        (HTML)</a>
+                                    <a href="{{ url_for('admin_lecciones.crear', curso_id=curso.id, modulo_id=modulo.id, tipo='video') }}"
+                                        class="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-100"><i
+                                            class="fas fa-video w-4 text-center mr-2 text-gray-500"></i> Video</a>
+                                    <a href="{{ url_for('admin_lecciones.crear', curso_id=curso.id, modulo_id=modulo.id, tipo='pdf') }}"
+                                        class="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-100"><i
+                                            class="fas fa-file-pdf w-4 text-center mr-2 text-gray-500"></i> Documento
+                                        PDF</a>
+                                    <a href="{{ url_for('admin_lecciones.crear', curso_id=curso.id, modulo_id=modulo.id, tipo='audio') }}"
+                                        class="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 border-b"><i
+                                            class="fas fa-headphones w-4 text-center mr-2 text-gray-500"></i> Audio</a>
+                                </div>
+                            </div>
+
+                            <!-- Eliminar Módulo -->
+                            <form action="{{ url_for('admin_modulos.eliminar', id=modulo.id) }}" method="POST"
+                                class="inline" onsubmit="return confirm('¿Eliminar módulo y todas sus lecciones?');">
+                                <button type="submit" class="text-red-500 hover:text-red-700 transition"
+                                    title="Eliminar Módulo">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="p-0">
+                        <ul class="divide-y divide-gray-100">
+                            {% for leccion in modulo.lecciones.order_by('orden') %}
+                            <li class="px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-grip-vertical text-gray-300 mr-3 cursor-move cursor-grab"></i>
+
+                                    {% if leccion.tipo == 'html' %}<i
+                                        class="fas fa-file-alt text-blue-500 w-5 text-center mr-3"></i>
+                                    {% elif leccion.tipo == 'video' %}<i
+                                        class="fas fa-play-circle text-red-500 w-5 text-center mr-3"></i>
+                                    {% elif leccion.tipo == 'pdf' %}<i
+                                        class="fas fa-file-pdf text-red-700 w-5 text-center mr-3"></i>
+                                    {% elif leccion.tipo == 'audio' %}<i
+                                        class="fas fa-volume-up text-indigo-500 w-5 text-center mr-3"></i>
+                                    {% endif %}
+
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800">{{ leccion.titulo }}</p>
+                                        {% if leccion.duracion_min %}<p class="text-xs text-gray-500">{{
+                                            leccion.duracion_min }} min.</p>{% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="flex space-x-3 text-sm">
+                                    <a href="{{ url_for('admin_lecciones.editar', id=leccion.id) }}"
+                                        class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></a>
+                                    <form action="{{ url_for('admin_lecciones.eliminar', id=leccion.id) }}"
+                                        method="POST" class="inline"
+                                        onsubmit="return confirm('¿Eliminar esta lección?');">
+                                        <button type="submit" class="text-red-400 hover:text-red-600"><i
+                                                class="fas fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </li>
+                            {% else %}
+                            <li class="px-4 py-4 text-center text-sm text-gray-500">
+                                Este módulo está vacío. Agrega contenido usando el botón "+ Contenido".
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Lecciones sin módulo -->
+                {% set lecciones_sueltas = curso.lecciones.filter_by(modulo_id=None).order_by('orden').all() %}
+                {% if lecciones_sueltas %}
+                <div class="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-2 border-b">
+                        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Lecciones Sueltas (Sin
+                            Módulo)</h3>
+                    </div>
+                    <ul class="divide-y divide-gray-100">
+                        {% for leccion in lecciones_sueltas %}
+                        <li class="px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center">
+                                <i class="fas fa-grip-vertical text-gray-300 mr-3"></i>
+                                {% if leccion.tipo == 'html' %}<i
+                                    class="fas fa-file-alt text-blue-500 w-5 text-center mr-3"></i>
+                                {% elif leccion.tipo == 'video' %}<i
+                                    class="fas fa-play-circle text-red-500 w-5 text-center mr-3"></i>
+                                {% elif leccion.tipo == 'pdf' %}<i
+                                    class="fas fa-file-pdf text-red-700 w-5 text-center mr-3"></i>
+                                {% elif leccion.tipo == 'audio' %}<i
+                                    class="fas fa-volume-up text-indigo-500 w-5 text-center mr-3"></i>
+                                {% endif %}
+                                <span class="text-sm font-medium text-gray-800">{{ leccion.titulo }}</span>
+                            </div>
+                            <div class="flex space-x-3 text-sm">
+                                <a href="{{ url_for('admin_lecciones.editar', id=leccion.id) }}"
+                                    class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></a>
+                                <form action="{{ url_for('admin_lecciones.eliminar', id=leccion.id) }}" method="POST"
+                                    class="inline" onsubmit="return confirm('¿Eliminar esta lección?');">
+                                    <button type="submit" class="text-red-400 hover:text-red-600"><i
+                                            class="fas fa-trash"></i></button>
+                                </form>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- Sidebar de Controles Rápido -->
+        <div class="w-full md:w-1/3 space-y-4">
+
+            <!-- Crear Módulo -->
+            <div class="bg-white p-4 rounded shadow-sm border border-gray-200">
+                <h3 class="font-bold text-gray-700 mb-3 text-sm"><i class="fas fa-folder-plus text-gray-400 mr-1"></i>
+                    Crear Módulo Nuevo</h3>
+                <form action="{{ url_for('admin_modulos.crear', curso_id=curso.id) }}" method="POST">
+                    <input type="text" name="titulo" placeholder="Ej. Unidad 1: Introducción"
+                        class="w-full text-sm py-2 px-3 border border-gray-300 rounded focus:outline-none focus:border-blue-500 mb-2"
+                        required>
+                    <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 rounded text-sm transition">
+                        Añadir Módulo
+                    </button>
+                </form>
+            </div>
+
+            <!-- Agregar lección rápida -->
+            <div class="bg-white p-4 rounded shadow-sm border border-gray-200">
+                <h3 class="font-bold text-gray-700 mb-3 text-sm"><i class="fas fa-file-medical text-gray-400 mr-1"></i>
+                    Agregar Lección rápida</h3>
+                <p class="text-xs text-gray-500 mb-3">Se agregará al final sin pertenecer a un módulo específico.</p>
+                <div class="grid grid-cols-2 gap-2 text-center text-xs">
+                    <a href="{{ url_for('admin_lecciones.crear', curso_id=curso.id, tipo='html') }}"
+                        class="border border-gray-200 hover:border-blue-400 hover:text-blue-600 p-2 rounded transition flex flex-col items-center">
+                        <i class="fas fa-file-alt text-lg mb-1"></i> Texto HTML
+                    </a>
+                    <a href="{{ url_for('admin_lecciones.crear', curso_id=curso.id, tipo='video') }}"
+                        class="border border-gray-200 hover:border-red-400 hover:text-red-600 p-2 rounded transition flex flex-col items-center">
+                        <i class="fas fa-video text-lg mb-1"></i> Video MP4
+                    </a>
+                    <a href="{{ url_for('admin_lecciones.crear', curso_id=curso.id, tipo='pdf') }}"
+                        class="border border-gray-200 hover:border-red-600 hover:text-red-700 p-2 rounded transition flex flex-col items-center">
+                        <i class="fas fa-file-pdf text-lg mb-1"></i> Doc PDF
+                    </a>
+                    <a href="{{ url_for('admin_lecciones.crear', curso_id=curso.id, tipo='audio') }}"
+                        class="border border-gray-200 hover:border-indigo-400 hover:text-indigo-600 p-2 rounded transition flex flex-col items-center">
+                        <i class="fas fa-headphones text-lg mb-1"></i> Audio MP3
+                    </a>
+                </div>
+            </div>
+
+            <!-- Link a Evaluación -->
+            <div class="bg-indigo-50 p-4 rounded shadow-sm border border-indigo-100">
+                <h3 class="font-bold text-indigo-900 mb-2 text-sm"><i class="fas fa-clipboard-check mr-1"></i>
+                    Evaluación del Curso</h3>
+                <p class="text-xs text-indigo-700 mb-3">Configura las preguntas que los usuarios deben responder al
+                    finalizar.</p>
+                <button disabled title="Próximamente en Fase 5"
+                    class="w-full bg-indigo-200 text-indigo-500 cursor-not-allowed font-medium py-1.5 px-3 rounded text-sm transition text-center opacity-70">
+                    Configurar Evaluación
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}

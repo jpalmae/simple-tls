@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_config.nombre_app if app_config else 'SixManager LMS' }}</title>
+    {% if app_config and app_config.favicon_url %}
+    <link rel="icon" type="image/x-icon" href="{{ minio_svc.get_file_url(app_config.favicon_url) }}">
+    {% endif %}
+    <!-- Tailwind CSS (CDN para MVP) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans leading-normal tracking-normal flex flex-col min-h-screen">
+
+    <nav class="bg-blue-900 p-4 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto flex items-center justify-between">
+            <div class="flex items-center text-white mr-6">
+                {% if app_config and app_config.logo_url %}
+                <img src="{{ minio_svc.get_file_url(app_config.logo_url) }}" alt="Logo" class="h-8 mr-4">
+                {% else %}
+                <i class="fas fa-graduation-cap fa-2x mr-4"></i>
+                {% endif %}
+                <span class="font-semibold text-xl tracking-tight">{{ app_config.nombre_app if app_config else
+                    'SixManager LMS' }}</span>
+            </div>
+
+            <div class="flex items-center flex-wrap gap-2">
+                {% if current_user.is_authenticated %}
+                <div class="text-white hover:text-gray-200 mr-2 font-medium text-sm">
+                    Hola, {{ current_user.nombre }}
+                </div>
+                <a href="{{ url_for('empleado_cursos.dashboard') }}"
+                    class="inline-block text-sm px-3 py-1.5 leading-none rounded text-blue-200 hover:text-white hover:bg-blue-800 transition mr-1">
+                    <i class="fas fa-book-reader mr-1"></i> Mis Cursos
+                </a>
+                {% if current_user.rol == 'admin' %}
+                <a href="{{ url_for('admin_cursos.index') }}"
+                    class="inline-block text-sm px-3 py-1.5 leading-none rounded text-blue-200 hover:text-white hover:bg-blue-800 transition mr-1">
+                    <i class="fas fa-chalkboard-teacher mr-1"></i> Cursos
+                </a>
+                <a href="{{ url_for('admin_inscripciones.index') }}"
+                    class="inline-block text-sm px-3 py-1.5 leading-none rounded text-blue-200 hover:text-white hover:bg-blue-800 transition mr-1">
+                    <i class="fas fa-user-graduate mr-1"></i> Inscripciones
+                </a>
+                <a href="{{ url_for('admin_users.index') }}"
+                    class="inline-block text-sm px-3 py-1.5 leading-none rounded text-blue-200 hover:text-white hover:bg-blue-800 transition mr-1">
+                    <i class="fas fa-users mr-1"></i> Usuarios
+                </a>
+                <a href="{{ url_for('admin_config.index') }}"
+                    class="inline-block text-sm px-3 py-1.5 leading-none rounded text-blue-200 hover:text-white hover:bg-blue-800 transition mr-1">
+                    <i class="fas fa-cog mr-1"></i> Config
+                </a>
+                {% endif %}
+                <a href="{{ url_for('auth.logout') }}"
+                    class="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-red-500 bg-red-500 hover:bg-red-600">
+                    Cerrar Sesión
+                </a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}"
+                    class="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-blue-900 hover:bg-white">
+                    Iniciar Sesión
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto flex-grow p-6">
+        <!-- Flash messages -->
+        <div class="mb-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="p-4 mb-4 text-sm rounded-lg {% if category == 'success' %}text-green-800 bg-green-50{% elif category == 'danger' %}text-red-800 bg-red-50{% else %}text-blue-800 bg-blue-50{% endif %}"
+                role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="bg-gray-800 text-white text-center p-4 mt-auto">
+        <p>&copy; 2026 SixManager Tecnologías SpA. Todos los derechos reservados.</p>
+    </footer>
+</body>
+
+</html>

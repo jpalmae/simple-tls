@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-8">
+    <div class="bg-white shadow-md rounded border border-gray-200 overflow-hidden">
+        <div class="bg-blue-900 text-white px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-semibold">{% if usuario %}Editar Usuario{% else %}Nuevo Usuario{% endif %}</h2>
+        </div>
+
+        <form
+            action="{% if usuario %}{{ url_for('admin_users.editar', id=usuario.id) }}{% else %}{{ url_for('admin_users.crear') }}{% endif %}"
+            method="POST" class="p-6">
+
+            <div class="flex flex-wrap -mx-3 mb-4">
+                <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                    <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="nombre">
+                        Nombre
+                    </label>
+                    <input
+                        class="appearance-none block w-full bg-gray-50 border border-gray-200 text-gray-700 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                        id="nombre" name="nombre" type="text" placeholder="Juan" required
+                        value="{{ usuario.nombre if usuario else '' }}">
+                </div>
+                <div class="w-full md:w-1/2 px-3">
+                    <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="apellido">
+                        Apellido
+                    </label>
+                    <input
+                        class="appearance-none block w-full bg-gray-50 border border-gray-200 text-gray-700 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                        id="apellido" name="apellido" type="text" placeholder="Pérez" required
+                        value="{{ usuario.apellido if usuario else '' }}">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="email">
+                    Correo Electrónico
+                </label>
+                <input
+                    class="appearance-none block w-full bg-gray-50 border border-gray-200 text-gray-700 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                    id="email" name="email" type="email" placeholder="juan.perez@sixmanager.cl" required
+                    value="{{ usuario.email if usuario else '' }}">
+            </div>
+
+            <div class="flex flex-wrap -mx-3 mb-6">
+                <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+                    <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="rol">
+                        Rol del Sistema
+                    </label>
+                    <div class="relative">
+                        <select
+                            class="block appearance-none w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                            id="rol" name="rol">
+                            <option value="empleado" {% if usuario and usuario.rol=='empleado' %}selected{% endif %}>
+                                Empleado</option>
+                            <option value="admin" {% if usuario and usuario.rol=='admin' %}selected{% endif %}>
+                                Administrador</option>
+                        </select>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full md:w-1/2 px-3">
+                    <label class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                        for="departamento_id">
+                        Departamento (Opcional)
+                    </label>
+                    <div class="relative">
+                        <select
+                            class="block appearance-none w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-blue-500"
+                            id="departamento_id" name="departamento_id">
+                            <option value="">-- Sin asignar --</option>
+                            {% for dept in departamentos %}
+                            <option value="{{ dept.id }}" {% if usuario and usuario.departamento_id==dept.id
+                                %}selected{% endif %}>{{ dept.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if usuario %}
+            <div class="mb-6 flex items-center">
+                <input class="mr-2 leading-tight h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    type="checkbox" id="activo" name="activo" {% if usuario.activo %}checked{% endif %}>
+                <label class="text-sm font-bold text-gray-700" for="activo">
+                    Usuario Activo (Puede iniciar sesión)
+                </label>
+            </div>
+            {% else %}
+            <div class="mb-6 bg-yellow-50 text-yellow-800 p-4 rounded text-sm border-l-4 border-yellow-400">
+                <p><i class="fas fa-info-circle mr-2"></i><strong>Nota:</strong> Al usuario se le asignará la contraseña
+                    temporal: <code>SixManager2026!</code></p>
+            </div>
+            {% endif %}
+
+            <div class="flex items-center justify-end border-t pt-4">
+                <a href="{{ url_for('admin_users.index') }}"
+                    class="text-gray-600 hover:text-gray-800 font-medium py-2 px-4 mr-2">
+                    Cancelar
+                </a>
+                <button
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline transition-colors duration-200"
+                    type="submit">
+                    Guardar Usuario
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

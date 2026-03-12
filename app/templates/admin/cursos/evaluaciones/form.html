@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 mt-8 max-w-3xl">
+
+    <div class="mb-6">
+        <a href="{{ url_for('admin_evaluaciones.index', curso_id=curso.id) }}"
+            class="text-blue-500 hover:text-blue-700 text-sm">
+            <i class="fas fa-arrow-left mr-1"></i> Volver a Evaluaciones
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 sm:p-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">
+            {% if evaluacion %}Editar Configuración de Evaluación{% else %}Nueva Evaluación{% endif %}
+            <div class="text-sm font-normal text-gray-500 mt-1">Curso: {{ curso.titulo }}</div>
+        </h1>
+
+        <form method="POST">
+            <!-- Título & Instrucciones -->
+            <div class="mb-6">
+                <label for="titulo" class="block text-gray-700 text-sm font-bold mb-2">Título de la Evaluación <span
+                        class="text-red-500">*</span></label>
+                <input type="text" id="titulo" name="titulo" required
+                    value="{{ evaluacion.titulo if evaluacion else '' }}" placeholder="Ej: Examen Final del Curso"
+                    class="shadow-sm appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+
+            <div class="mb-6">
+                <label for="instrucciones" class="block text-gray-700 text-sm font-bold mb-2">Instrucciones /
+                    Descripción</label>
+                <textarea id="instrucciones" name="instrucciones" rows="3"
+                    placeholder="Instrucciones para los estudiantes..."
+                    class="shadow-sm appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ evaluacion.instrucciones if evaluacion else '' }}</textarea>
+            </div>
+
+            <hr class="my-6 border-gray-200">
+            <h3 class="font-bold text-gray-800 mb-4">Reglas y Puntajes</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div>
+                    <label for="nota_minima_aprobacion" class="block text-gray-700 text-sm font-bold mb-2">Puntaje
+                        Mínimo <span class="text-red-500">*</span></label>
+                    <input type="number" id="nota_minima_aprobacion" name="nota_minima_aprobacion" required min="1"
+                        value="{{ evaluacion.nota_minima_aprobacion if evaluacion else 60 }}"
+                        class="shadow-sm appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <p class="text-xs text-gray-500 mt-1">Puntos requeridos para aprobar.</p>
+                </div>
+                <div>
+                    <label for="intentos_maximos" class="block text-gray-700 text-sm font-bold mb-2">Intentos Máximos
+                        <span class="text-red-500">*</span></label>
+                    <input type="number" id="intentos_maximos" name="intentos_maximos" required min="1"
+                        value="{{ evaluacion.intentos_maximos if evaluacion else 1 }}"
+                        class="shadow-sm appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <p class="text-xs text-gray-500 mt-1">Permitir reintentos en caso de fallar.</p>
+                </div>
+                <div>
+                    <label for="tiempo_limite_min" class="block text-gray-700 text-sm font-bold mb-2">Tiempo Límite
+                        (min)</label>
+                    <input type="number" id="tiempo_limite_min" name="tiempo_limite_min" min="1"
+                        value="{{ evaluacion.tiempo_limite_min if evaluacion else '' }}" placeholder="Opcional"
+                        class="shadow-sm appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <p class="text-xs text-gray-500 mt-1">Dejar vacío para sin tiempo.</p>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <label class="flex items-center space-x-3 mb-3 cursor-pointer">
+                    <input type="checkbox" name="aleatorizar_preguntas" value="true"
+                        class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500" {% if
+                        evaluacion and evaluacion.aleatorizar_preguntas %}checked{% endif %}>
+                    <span class="text-gray-700 font-medium">Aleatorizar orden de preguntas</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" name="aleatorizar_opciones" value="true"
+                        class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500" {% if
+                        evaluacion and evaluacion.aleatorizar_opciones %}checked{% endif %}>
+                    <span class="text-gray-700 font-medium">Aleatorizar opciones en selección múltiple</span>
+                </label>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex items-center justify-end border-t pt-5">
+                <a href="{{ url_for('admin_evaluaciones.index', curso_id=curso.id) }}"
+                    class="text-gray-600 hover:text-gray-800 font-medium mr-4">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded shadow-md transition">
+                    {% if evaluacion %}Guardar Cambios{% else %}Crear y Configurar Preguntas{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

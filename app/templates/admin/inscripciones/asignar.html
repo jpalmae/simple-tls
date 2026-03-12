@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 mt-8 max-w-3xl">
+
+    <div class="mb-6">
+        <a href="{{ url_for('admin_inscripciones.index') }}" class="text-blue-500 hover:text-blue-700 text-sm">
+            <i class="fas fa-arrow-left mr-1"></i> Volver a Inscripciones
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 sm:p-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Asignar Curso</h1>
+        <p class="text-gray-500 text-sm mb-6">Inscribe empleados a un programa de capacitación de forma individual o por
+            departamento.</p>
+
+        <form method="POST" id="form-asignar">
+
+            <!-- Paso 1: Seleccionar Curso -->
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Curso a Asignar <span
+                        class="text-red-500">*</span></label>
+                <select name="curso_id" required
+                    class="w-full border border-gray-300 rounded py-2 px-3 text-gray-700 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm">
+                    <option value="">— Selecciona un curso activo —</option>
+                    {% for c in cursos %}
+                    <option value="{{ c.id }}">{{ c.titulo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Paso 2: Fecha límite -->
+            <div class="mb-8">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Fecha Límite de Completación</label>
+                <input type="date" name="fecha_limite"
+                    class="border border-gray-300 rounded py-2 px-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm w-full sm:w-auto">
+                <p class="text-xs text-gray-500 mt-1">Opcional. Si no se define, el curso no vencerá.</p>
+            </div>
+
+            <hr class="my-6 border-gray-200">
+
+            <!-- Paso 3: Modo de Inscripción -->
+            <h3 class="font-bold text-gray-800 mb-4">¿A quién inscribir?</h3>
+
+            <div class="flex gap-4 mb-6">
+                <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="modo" value="departamento" class="peer hidden" checked>
+                    <div
+                        class="border-2 border-gray-200 rounded-lg p-4 text-center peer-checked:border-blue-500 peer-checked:bg-blue-50 transition hover:bg-gray-50">
+                        <i class="fas fa-building fa-2x text-gray-400 peer-checked:text-blue-500 mb-2 block"></i>
+                        <span class="font-bold text-gray-700">Por Departamento</span>
+                        <p class="text-xs text-gray-500 mt-1">Inscribir a todos los empleados activos de un
+                            departamento.</p>
+                    </div>
+                </label>
+                <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="modo" value="individual" class="peer hidden">
+                    <div
+                        class="border-2 border-gray-200 rounded-lg p-4 text-center peer-checked:border-blue-500 peer-checked:bg-blue-50 transition hover:bg-gray-50">
+                        <i class="fas fa-user fa-2x text-gray-400 peer-checked:text-blue-500 mb-2 block"></i>
+                        <span class="font-bold text-gray-700">Individual</span>
+                        <p class="text-xs text-gray-500 mt-1">Seleccionar empleados específicos.</p>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Panel Departamento -->
+            <div id="panel-departamento" class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Departamento</label>
+                <select name="departamento_id"
+                    class="w-full border border-gray-300 rounded py-2 px-3 bg-white shadow-sm">
+                    <option value="">— Selecciona —</option>
+                    {% for d in departamentos %}
+                    <option value="{{ d.id }}">{{ d.nombre }} ({{ d.usuarios.count() }} usuarios)</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Panel Individual -->
+            <div id="panel-individual" class="mb-6 hidden">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Empleados</label>
+                <div class="max-h-60 overflow-y-auto border border-gray-300 rounded p-3 space-y-2 bg-gray-50">
+                    {% for u in usuarios %}
+                    <label class="flex items-center p-2 hover:bg-white rounded cursor-pointer transition">
+                        <input type="checkbox" name="usuario_ids" value="{{ u.id }}"
+                            class="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 mr-3">
+                        <span class="text-sm text-gray-800">{{ u.apellido }}, {{ u.nombre }} <span
+                                class="text-gray-400">({{ u.email }})</span></span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-gray-100 mt-6">
+                <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded shadow-md transition">
+                    <i class="fas fa-user-plus mr-2"></i> Inscribir
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const radios = document.querySelectorAll('input[name="modo"]');
+    const panelDepto = document.getElementById('panel-departamento');
+    const panelIndiv = document.getElementById('panel-individual');
+
+    radios.forEach(r => {
+        r.addEventListener('change', function () {
+            if (this.value === 'departamento') {
+                panelDepto.classList.remove('hidden');
+                panelIndiv.classList.add('hidden');
+            } else {
+                panelDepto.classList.add('hidden');
+                panelIndiv.classList.remove('hidden');
+            }
+        });
+    });
+</script>
+{% endblock %}

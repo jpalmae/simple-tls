@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 mt-8 max-w-6xl">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <div class="text-sm text-gray-500 mb-1">
+                <a href="{{ url_for('admin_cursos.index') }}" class="hover:text-blue-600"><i
+                        class="fas fa-arrow-left mr-1"></i> Cursos</a> /
+                <span class="font-medium text-gray-700">{{ curso.titulo }}</span>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800">Evaluaciones</h1>
+        </div>
+        <div>
+            <a href="{{ url_for('admin_evaluaciones.crear', curso_id=curso.id) }}"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-sm inline-flex items-center transition">
+                <i class="fas fa-plus mr-2"></i> Crear Evaluación
+            </a>
+        </div>
+    </div>
+
+    <!-- Lista -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden border border-gray-100">
+        <table class="min-w-full leading-normal">
+            <thead>
+                <tr>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Título</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Preguntas</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        P. Mínimo</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Límites</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for evaluacion in evaluaciones %}
+                <tr>
+                    <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
+                        <div class="font-bold text-gray-900">{{ evaluacion.titulo }}</div>
+                        <div class="text-xs text-gray-500 truncate max-w-xs">{{ evaluacion.instrucciones }}</div>
+                    </td>
+                    <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
+                        <span
+                            class="bg-gray-100 text-gray-800 font-semibold px-2 py-1 rounded inline-flex items-center">
+                            {{ evaluacion.preguntas.count() }} <i class="fas fa-question-circle ml-1 opacity-50"></i>
+                        </span>
+                    </td>
+                    <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
+                        <span class="text-gray-900 font-bold">{{ evaluacion.nota_minima_aprobacion }}</span> pts
+                    </td>
+                    <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-gray-600">
+                        <div><i class="fas fa-redo text-xs mr-1"></i> {{ evaluacion.intentos_maximos }} intentos</div>
+                        {% if evaluacion.tiempo_limite_min %}
+                        <div><i class="far fa-clock text-xs mr-1"></i> {{ evaluacion.tiempo_limite_min }} min</div>
+                        {% else %}
+                        <div><i class="far fa-clock text-xs mr-1"></i> Sin límite</div>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-right">
+
+                        <a href="{{ url_for('admin_evaluaciones.builder', curso_id=curso.id, eval_id=evaluacion.id) }}"
+                            class="text-green-600 hover:text-green-900 mx-2" title="Constructor de Preguntas">
+                            <i class="fas fa-hammer"></i> Preguntas
+                        </a>
+
+                        <a href="{{ url_for('admin_evaluaciones.editar', curso_id=curso.id, eval_id=evaluacion.id) }}"
+                            class="text-indigo-600 hover:text-indigo-900 mx-2" title="Editar Configuración">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+
+                        <form
+                            action="{{ url_for('admin_evaluaciones.eliminar', curso_id=curso.id, eval_id=evaluacion.id) }}"
+                            method="POST" class="inline"
+                            onsubmit="return confirm('¿Estás seguro de eliminar esta evaluación y todas sus preguntas?');">
+                            <button type="submit" class="text-red-600 hover:text-red-900 mx-2" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5"
+                        class="px-5 py-8 border-b border-gray-200 bg-white text-sm text-center text-gray-500">
+                        <i class="fas fa-clipboard-list fa-2x mb-3 text-gray-300 block"></i>
+                        No hay evaluaciones para este curso todavía.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

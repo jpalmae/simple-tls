@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 mt-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Catálogo de Cursos</h2>
+        <a href="{{ url_for('admin_cursos.crear') }}"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow">
+            <i class="fas fa-plus mr-2"></i> Nuevo Curso
+        </a>
+    </div>
+
+    <!-- Courses Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for curso in cursos.items %}
+        <div
+            class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+            <!-- Cover Image -->
+            <div class="h-48 w-full bg-gray-200 relative">
+                {% if curso.cover_url %}
+                <img src="{{ curso.cover_url }}" alt="Portada {{ curso.titulo }}" class="w-full h-full object-cover">
+                {% else %}
+                <div class="flex items-center justify-center h-full w-full text-gray-400">
+                    <i class="fas fa-image fa-3x"></i>
+                </div>
+                {% endif %}
+
+                <!-- Status Badge -->
+                <div class="absolute top-2 right-2">
+                    {% if curso.activo %}
+                    <span
+                        class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-green-200">Activo</span>
+                    {% else %}
+                    <span
+                        class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-yellow-200">Borrador</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-4">
+                <h3 class="font-bold text-lg text-gray-800 mb-2 truncate" title="{{ curso.titulo }}">{{ curso.titulo }}
+                </h3>
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2 h-10">{{ curso.descripcion or 'Sin descripción' }}</p>
+
+                <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
+                    <span><i class="fas fa-book mr-1"></i> {{ curso.lecciones.count() }} Lecciones</span>
+                    <span><i class="fas fa-users mr-1"></i> {{ curso.inscripciones.count() }} Inscritos</span>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex space-x-2 border-t pt-3">
+                    <a href="{{ url_for('admin_cursos.builder', id=curso.id) }}"
+                        class="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold py-1.5 px-3 rounded text-center text-sm border border-indigo-200 transition-colors">
+                        <i class="fas fa-list-ul mr-1"></i> Malla
+                    </a>
+                    <a href="{{ url_for('admin_cursos.editar', id=curso.id) }}"
+                        class="bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-1.5 px-3 rounded text-center text-sm border border-gray-200 transition-colors">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <form action="{{ url_for('admin_cursos.eliminar', id=curso.id) }}" method="POST" class="inline"
+                        onsubmit="return confirm('¿Estás seguro de eliminar este curso y todo su contenido? Esta acción no se puede deshacer.');">
+                        <button type="submit"
+                            class="bg-red-50 hover:bg-red-100 text-red-700 font-semibold py-1.5 px-3 rounded text-center text-sm border border-red-200 transition-colors">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-span-full bg-white rounded-lg shadow p-8 text-center text-gray-500">
+            <i class="fas fa-box-open fa-3x mb-4 text-gray-300"></i>
+            <p class="text-lg">No hay cursos creados aún.</p>
+            <p class="text-sm mt-2">Haz clic en "Nuevo Curso" para comenzar.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if cursos.pages > 1 %}
+    <div class="mt-8 flex justify-center">
+        <div class="inline-flex rounded-md shadow-sm">
+            {% if cursos.has_prev %}
+            <a href="{{ url_for('admin_cursos.index', page=cursos.prev_num) }}"
+                class="py-2 px-4 text-sm font-medium text-gray-700 bg-white rounded-l-lg border border-gray-200 hover:bg-gray-50">
+                Anterior
+            </a>
+            {% endif %}
+
+            <span class="py-2 px-4 text-sm font-medium text-gray-700 bg-gray-50 border-t border-b border-gray-200">
+                Página {{ cursos.page }} de {{ cursos.pages }}
+            </span>
+
+            {% if cursos.has_next %}
+            <a href="{{ url_for('admin_cursos.index', page=cursos.next_num) }}"
+                class="py-2 px-4 text-sm font-medium text-gray-700 bg-white rounded-r-lg border border-gray-200 hover:bg-gray-50">
+                Siguiente
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

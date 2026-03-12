@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ leccion_actual.titulo }} - {{ curso.titulo }}</title>
+    <!-- Tailwind CSS y FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Estilos base para contenido HTML inyectado de la DB */
+        .content-area h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+
+        .content-area h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 1.25rem;
+            margin-bottom: 0.75rem;
+            color: #374151;
+        }
+
+        .content-area h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #4b5563;
+        }
+
+        .content-area p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            color: #374151;
+        }
+
+        .content-area ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: #374151;
+        }
+
+        .content-area ol {
+            list-style-type: decimal;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: #374151;
+        }
+
+        .content-area a {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+
+        .content-area b,
+        .content-area strong {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        /* Aseguramos que los contenedores height 100vh se comporten bien */
+        body,
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 h-screen flex flex-col font-sans antialiased text-gray-900">
+
+    <!-- Topbar Simplificado (Sin distracciones nav) -->
+    <nav
+        class="bg-blue-900 text-white h-14 flex items-center justify-between px-4 sm:px-6 shadow-md z-20 flex-shrink-0">
+        <div class="flex items-center space-x-4 overflow-hidden truncate">
+            <a href="{{ url_for('empleado_cursos.detalle', id=curso.id) }}"
+                class="text-blue-200 hover:text-white transition flex-shrink-0" title="Volver al curso">
+                <i class="fas fa-times fa-lg"></i>
+            </a>
+            <div class="h-6 w-px bg-blue-700 mx-2 flex-shrink-0"></div>
+            <span class="font-medium text-sm sm:text-base truncate" title="{{ curso.titulo }}">{{ curso.titulo }}</span>
+            <span class="text-blue-300 hidden sm:inline"><i class="fas fa-chevron-right text-xs"></i></span>
+            <span class="font-bold text-sm sm:text-base truncate" title="{{ leccion_actual.titulo }}">{{
+                leccion_actual.titulo }}</span>
+        </div>
+
+        <div class="flex items-center space-x-3 flex-shrink-0">
+            <span class="text-xs bg-blue-800 px-2 py-1 rounded hidden sm:inline-block">Progreso Autoguardado</span>
+        </div>
+    </nav>
+
+    <!-- Área de Trabajo Principal (Layout con Sidebar a la Izq) -->
+    <div class="flex flex-1 overflow-hidden relative">
+
+        <!-- Sidebar Navigation (Oculto on mobile by default, manejable con JS o simplificado) -->
+        <aside
+            class="w-72 bg-white flex-shrink-0 border-r border-gray-200 flex flex-col hidden md:flex h-full shadow-inner relative z-10 transition-all duration-300"
+            id="course-sidebar">
+            <div class="p-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                <h2 class="font-bold text-gray-800">Contenido</h2>
+            </div>
+
+            <div class="overflow-y-auto flex-1 p-2">
+                <ul class="space-y-1">
+                    {% for item in lecciones_estado %}
+                    <li>
+                        {% if item.id == leccion_actual.id %}
+                        <!-- Item Activo -->
+                        <div class="flex items-center p-3 bg-blue-50 border-l-4 border-blue-600 rounded-r shadow-sm">
+                            <span class="flex-shrink-0 w-5 text-center mr-2">
+                                {% if item.completada %}
+                                <i class="fas fa-check-circle text-green-500"></i>
+                                {% else %}
+                                <i class="far fa-circle text-blue-400"></i>
+                                {% endif %}
+                            </span>
+                            <span class="text-sm font-bold text-blue-900 leading-tight">{{ item.titulo }}</span>
+                        </div>
+
+                        {% elif item.bloqueada %}
+                        <!-- Item Bloqueado -->
+                        <div class="flex items-center p-3 rounded text-gray-400 cursor-not-allowed">
+                            <span class="flex-shrink-0 w-5 text-center mr-2"><i class="fas fa-lock text-xs"></i></span>
+                            <span class="text-sm line-clamp-2 leading-tight">{{ item.titulo }}</span>
+                        </div>
+
+                        {% else %}
+                        <!-- Item Disponible -->
+                        <a href="{{ url_for('visor.ver_leccion', leccion_id=item.id) }}"
+                            class="flex items-center p-3 hover:bg-gray-50 rounded transition group">
+                            <span class="flex-shrink-0 w-5 text-center mr-2">
+                                {% if item.completada %}
+                                <i class="fas fa-check-circle text-green-500"></i>
+                                {% else %}
+                                <i class="far fa-circle text-gray-300 group-hover:text-gray-400"></i>
+                                {% endif %}
+                            </span>
+                            <span class="text-sm text-gray-700 leading-tight group-hover:text-blue-600">{{ item.titulo
+                                }}</span>
+                        </a>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col bg-gray-50 relative h-full overflow-hidden">
+
+            <!-- Contenedor del reproductor central con scroll propio (Excepto para video/pdf full screen) -->
+            <div class="flex-1 overflow-y-auto" id="contenido-scroll-area">
+
+                <div
+                    class="max-w-4xl mx-auto w-full {% if leccion_actual.tipo in ['video', 'pdf'] %}h-full p-4{% else %}py-8 px-6 sm:px-12 bg-white min-h-full shadow-sm{% endif %}">
+
+                    {% if leccion_actual.tipo == 'html' %}
+                    <!-- Render HTML Content -->
+                    <article class="content-area max-w-none">
+                        {{ leccion_actual.contenido|safe }}
+                    </article>
+
+                    {% elif leccion_actual.tipo == 'video' %}
+                    <!-- HTML5 Video Player -->
+                    <div
+                        class="w-full h-full flex flex-col bg-black rounded-lg overflow-hidden shadow-2xl border border-gray-800">
+                        {% if contenido_url %}
+                        <video id="reproductor_media" controls class="w-full h-full object-contain focus:outline-none"
+                            controlsList="nodownload">
+                            <source src="{{ contenido_url }}" type="video/mp4">
+                            Tu navegador no soporta el formato de video.
+                        </video>
+                        {% else %}
+                        <div class="flex-1 flex items-center justify-center text-red-500 flex-col">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-4"></i>
+                            <p>Error cargando archivo de MinIO.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% elif leccion_actual.tipo == 'audio' %}
+                    <!-- HTML5 Audio Player -->
+                    <div class="pt-10 flex flex-col items-center">
+                        <div
+                            class="w-32 h-32 bg-indigo-100 text-indigo-500 rounded-full flex items-center justify-center mb-8 shadow-inner border-4 border-white">
+                            <i class="fas fa-podcast fa-4x"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">{{ leccion_actual.titulo }}</h2>
+
+                        {% if contenido_url %}
+                        <div class="w-full max-w-md bg-gray-100 p-4 rounded-full shadow-inner">
+                            <audio id="reproductor_media" controls class="w-full focus:outline-none"
+                                controlsList="nodownload">
+                                <source src="{{ contenido_url }}">
+                                Tu navegador no soporta el formato de audio.
+                            </audio>
+                        </div>
+                        {% else %}
+                        <p class="text-red-500">Error cargando audio.</p>
+                        {% endif %}
+                    </div>
+
+                    {% elif leccion_actual.tipo == 'pdf' %}
+                    <!-- Native PDF iFrame (Fallback for v1 MVP) -->
+                    <div
+                        class="w-full h-full flex flex-col bg-white rounded-lg shadow-xl overflow-hidden border border-gray-300 relative">
+                        {% if contenido_url %}
+                        <iframe id="pdf_viewer" src="{{ contenido_url }}#toolbar=0&navpanes=0&scrollbar=1"
+                            class="w-full h-full border-0 bg-gray-200"></iframe>
+                        {% else %}
+                        <div class="flex-1 flex items-center justify-center text-red-500 flex-col">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-4"></i>
+                            <p>Error cargando PDF desde MinIO.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+
+                    <!-- Control Botón "Marcar como Completado" (Principalmente para HTML/PDF, Audio/Video lo hace idealmente auto) -->
+                    {% if not leccion_actual.tipo in ['video'] %}
+                    <div class="mt-12 pt-6 border-t border-gray-200 flex justify-center pb-8"
+                        id="manual-complete-container">
+                        <button id="btn-completar" onclick="marcarCompletada(true)"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:-translate-y-0.5 flex items-center">
+                            <i class="fas fa-check-double mr-2"></i> Marcar Lección como Completada
+                        </button>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- Footer Toolbar de Navegación -->
+            <div
+                class="bg-white border-t border-gray-200 h-16 flex items-center justify-between px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 flex-shrink-0">
+
+                <button onclick="document.getElementById('course-sidebar').classList.toggle('hidden')"
+                    class="md:hidden text-gray-500 hover:text-gray-800">
+                    <i class="fas fa-bars fa-lg"></i>
+                </button>
+
+                <div class="flex-1 flex justify-start pl-2 md:pl-0">
+                    {% if leccion_anterior_id %}
+                    <a href="{{ url_for('visor.ver_leccion', leccion_id=leccion_anterior_id) }}"
+                        class="flex items-center text-gray-600 hover:text-blue-600 font-medium transition">
+                        <i class="fas fa-arrow-left mr-2"></i> <span class="hidden sm:inline">Anterior</span>
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="flex-1 flex justify-center items-center">
+                    <span id="estado-texto"
+                        class="text-sm font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-500 flex items-center transition-colors duration-300">
+                        <i class="fas fa-circle-notch fa-spin mr-2 opacity-50 text-xs hidden" id="loading-spinner"></i>
+                        <span id="estado-label">En progreso</span>
+                    </span>
+                </div>
+
+                <div class="flex-1 flex justify-end">
+                    {% if leccion_siguiente_id %}
+                    <a href="{{ url_for('visor.ver_leccion', leccion_id=leccion_siguiente_id) }}" id="btn-siguiente"
+                        class="flex items-center text-blue-600 hover:text-blue-800 font-bold transition">
+                        <span class="hidden sm:inline mr-2">Siguiente</span> <i class="fas fa-arrow-right"></i>
+                    </a>
+                    {% else %}
+                    <!-- Fin del curso -->
+                    <a href="{{ url_for('empleado_cursos.detalle', id=curso.id) }}"
+                        class="flex items-center text-green-600 hover:text-green-800 font-bold transition">
+                        Finalizar Curso <i class="fas fa-flag-checkered ml-2"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- API JS Logic -->
+    <script>
+        const leccionId = {{ leccion_actual.id }};
+        let completadaActualmente = false; // Estado inicial visual
+
+        // Verificar si ya venía completada según DB (inyectado desde Jinja si quieres optimizar, 
+        // pero por ahora lo forzamos al presionar botón o terminar media)
+        {% for estado in lecciones_estado %}
+        {% if estado.id == leccion_actual.id and estado.completada %}
+        marcarUICompletada(true);
+        {% endif %}
+        {% endfor %}
+
+        // Media Events para auto-guardado
+        const mediaElement = document.getElementById('reproductor_media');
+        if (mediaElement) {
+            mediaElement.addEventListener('ended', function () {
+                marcarCompletada(false); // Falso = auto triggered, previene alert intrusivo
+            });
+
+            // Opcional: auto-guardar progreso de tiempo_visto_seg periódicamente (Fase 4 Avanzada)
+        }
+
+        function marcarCompletada(manual = true) {
+            if (completadaActualmente && manual) return; // Evitar doble submit innecesario
+
+            const spinner = document.getElementById('loading-spinner');
+            if (spinner) spinner.classList.remove('hidden');
+
+            let timeViewed = 0;
+            if (mediaElement) {
+                timeViewed = Math.floor(mediaElement.currentTime);
+            }
+
+            fetch('{{ url_for("visor.marcar_completado") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // CSRF Token if required en Flask-WTF globally, o omitir para este MVP si WTFCSRFProtect no está auto-inyectado
+                },
+                body: JSON.stringify({
+                    leccion_id: leccionId,
+                    tiempo_visto_seg: timeViewed
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (spinner) spinner.classList.add('hidden');
+
+                    if (data.success) {
+                        marcarUICompletada(false);
+                    } else {
+                        console.error("Error marcando completada:", data.error);
+                        if (manual) alert("Hubo un error al guardar tu progreso.");
+                    }
+                })
+                .catch(error => {
+                    if (spinner) spinner.classList.add('hidden');
+                    console.error("Fetch error:", error);
+                });
+        }
+
+        function marcarUICompletada(esCargaInicial = false) {
+            completadaActualmente = true;
+
+            // UI Button (Manual)
+            const btnManual = document.getElementById('btn-completar');
+            if (btnManual) {
+                btnManual.classList.replace('bg-blue-600', 'bg-green-500');
+                btnManual.classList.replace('hover:bg-blue-700', 'hover:bg-green-600');
+                btnManual.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Lección Completada';
+                btnManual.disabled = true;
+                btnManual.classList.add('cursor-default', 'opacity-90');
+            }
+
+            // Estado Text bar
+            const statusBage = document.getElementById('estado-texto');
+            const statusLabel = document.getElementById('estado-label');
+            if (statusBage && statusLabel) {
+                statusBage.classList.replace('bg-gray-100', 'bg-green-100');
+                statusBage.classList.replace('text-gray-500', 'text-green-700');
+                statusLabel.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Completada';
+            }
+
+            // Alert visual solo si es manual (el usuario presionó el botón u terminó el video frente a él)
+            if (!esCargaInicial) {
+                // Si queríamos refrescar o simplemente iluminar el "Siguiente"
+                const nextBtn = document.getElementById('btn-siguiente');
+                if (nextBtn) {
+                    nextBtn.classList.add('animate-pulse', 'scale-105');
+                    setTimeout(() => nextBtn.classList.remove('animate-pulse', 'scale-105'), 3000);
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
